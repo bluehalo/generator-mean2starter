@@ -1,0 +1,4 @@
+[submodule "generators/app/templates/mean2-starter"]
+	path = generators/app/templates/mean2-starter
+	url = https://github.com/Asymmetrik/mean2-starter
+	branch = master
