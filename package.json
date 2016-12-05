@@ -1,7 +1,7 @@
 {
   "name": "generator-mean-2-starter",
   "version": "0.0.0",
-  "description": "Creates a Node/Express/Mongo/Angular2 starter framework for applications and Docker-based microservices",
+  "description": "A yeoman generator that creates a Node/Express/Mongo/Angular2 starter framework for applications and Docker-based microservices",
   "homepage": "",
   "author": {
     "name": "Andrew Marcus",
