@@ -1,5 +1,5 @@
 {
-  "name": "generator-mean-2-starter",
+  "name": "generator-mean2starter",
   "version": "0.0.0",
   "description": "A yeoman generator that creates a Node/Express/Mongo/Angular2 starter framework for applications and Docker-based microservices",
   "homepage": "",
@@ -21,8 +21,9 @@
     "yeoman-generator"
   ],
   "dependencies": {
-    "yeoman-generator": "^0.23.0",
     "chalk": "^1.0.0",
+    "q": "^1.4.1",
+    "yeoman-generator": "^0.23.0",
     "yosay": "^1.0.0"
   },
   "devDependencies": {
