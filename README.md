@@ -1,27 +1,26 @@
-# generator-mean-2-starter [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url]
+# generator-mean2starter [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url]
 > Creates a Node/Express/Mongo/Angular2 starter framework for applications and Docker-based microservices
 
 ## Installation
 
-First, install [Yeoman](http://yeoman.io) and generator-mean-2-starter using [npm](https://www.npmjs.com/) (we assume you have pre-installed [node.js](https://nodejs.org/)).
+First, install [Yeoman](http://yeoman.io) and generator-mean2starter using [npm](https://www.npmjs.com/) (we assume you have pre-installed [node.js](https://nodejs.org/)).
 
 ```bash
 npm install -g yo
-npm install -g generator-mean-2-starter
+npm install -g generator-mean2starter
+```
+
+For local development, you can instead download this project
+and run:
+```bash
+npm link
 ```
 
 Then generate your new project:
 
 ```bash
-yo mean-2-starter
+yo mean2starter
 ```
-
-## Getting To Know Yeoman
-
- * Yeoman has a heart of gold.
- * Yeoman is a person with feelings and opinions, but is very easy to work with.
- * Yeoman can be too opinionated at times but is easily convinced not to be.
- * Feel free to [learn more about Yeoman](http://yeoman.io/).
 
 ## License
 

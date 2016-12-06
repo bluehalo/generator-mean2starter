@@ -1,6 +1,6 @@
 {
 	"name": "generator-mean2starter",
-	"version": "0.0.0",
+	"version": "0.1.0",
 	"description": "A yeoman generator that creates a Node/Express/Mongo/Angular2 starter framework for applications and Docker-based microservices",
 	"homepage": "",
 	"author": {
