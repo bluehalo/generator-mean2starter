@@ -153,6 +153,15 @@ module.exports = yeoman.Base.extend({
 	},
 
 	/**
+	 * Lifecycle hook: Install the npm packages
+	 */
+	install: function() {
+		if (!this.props.docker) {
+			this.npmInstall();
+		}
+	},
+
+	/**
 	 * Applies all of the prompts for which we don't yet have data defined on the command line.
 	 *
 	 * @param {Object} prompts - The definition of the prompts that can be asked.
