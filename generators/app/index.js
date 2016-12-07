@@ -54,6 +54,16 @@ module.exports = yeoman.Base.extend({
 		return this._applyPrompts(prompts);
 	},
 
+	configuring: function() {
+		// If this is a docker build, it will be installed in a subdirectory
+		if (this.props.docker) {
+			this.appDestination = this.props.appname;
+		}
+		else {
+			this.appDestination = '.';
+		}
+	},
+
 	/**
 	 * Lifecycle hook: Write the appropriate files
 	 */
@@ -61,34 +71,28 @@ module.exports = yeoman.Base.extend({
 
 		copyFiles: function () {
 
-			// For a Docker installation, nest everything into a subdirectory named with the application name
-			let destination = '.';
-			if (this.props.docker) {
-				destination = this.props.appname;
-			}
-
 			// Install the top-level files
-			this._processGlob('mean2-starter', '*.*', destination);
+			this._processGlob('mean2-starter', '*.*', this.appDestination);
 
 			// Install the config environment files
-			this._processGlob('mean2-starter', 'config/**', destination, this.props);
+			this._processGlob('mean2-starter', 'config/**', this.appDestination, this.props);
 
 			// Install the Docker code if requested
 			if (this.props.docker) {
-				this._processGlob('docker', '*', destination, this.props);
+				this._processGlob('docker', '*', this.appDestination, this.props);
 			}
 
 			// Install the server code
-			this._processGlob('mean2-starter', 'src/server/**/*.*', destination);
+			this._processGlob('mean2-starter', 'src/server/**/*.*', this.appDestination);
 
 			// Install the client code if requested
 			if (this.props.client) {
-				this._processGlob('mean2-starter', 'src/client/**/*.*', destination);
+				this._processGlob('mean2-starter', 'src/client/**/*.*', this.appDestination);
 			}
 			// Otherwise, overwrite certain files with the server-only version
 			else {
-				this._processGlob('server-only', 'config/*.*', destination, this.props);
-				this.fs.delete(path.join(destination, 'test-client.js'));
+				this._processGlob('server-only', 'config/*.*', this.appDestination, this.props);
+				this.fs.delete(path.join(this.appDestination, 'test-client.js'));
 			}
 
 			// Install the multiservice Docker configs if requested
@@ -144,7 +148,7 @@ module.exports = yeoman.Base.extend({
 			pkg.dependencies = this._sortKeys(pkg.dependencies);
 			pkg.devDependencies = this._sortKeys(pkg.devDependencies);
 
-			this.fs.writeJSON('package.json', pkg, null, 4);
+			this.fs.writeJSON(path.join(this.appDestination, 'package.json'), pkg, null, 4);
 		}
 	},
 
