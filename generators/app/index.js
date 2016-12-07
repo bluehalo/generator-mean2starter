@@ -18,12 +18,13 @@ module.exports = yeoman.Base.extend({
 	 */
 	prompting: function () {
 		// Define all the prompts we can ask the user
-		var prompts = {
+		let prompts = {
 			appname: {
 				type: 'input',
-				message: 'Provide a name for this application',
+				message: 'Provide a name for this application or service. It should be lowercase and should not contain spaces.',
 				default: this.appname,
-				store: true
+				store: true,
+				filter: (val) => { return val.toLowerCase().replace(/\s/, '-'); }
 			},
 			description: {
 				type: 'input',
@@ -38,9 +39,15 @@ module.exports = yeoman.Base.extend({
 			},
 			docker: {
 				type: 'confirm',
-				message: 'Would you like to install the Docker framework files?',
+				message: 'Will you be using Docker to develop and/or deploy this application?',
 				default: false,
 				store: true
+			},
+			multiservice: {
+				type: 'confirm',
+				message: 'Would you like to include a framework for multiple docker services?',
+				default: false,
+				when: (props) => { return props.docker; }
 			}
 		};
 
@@ -53,28 +60,40 @@ module.exports = yeoman.Base.extend({
 	writing: {
 
 		copyFiles: function () {
+
+			// For a Docker installation, nest everything into a subdirectory named with the application name
+			let destination = '.';
+			if (this.props.docker) {
+				destination = this.props.appname;
+			}
+
 			// Install the top-level files
-			this._processGlob('mean2-starter', '*.*');
+			this._processGlob('mean2-starter', '*.*', destination);
 
 			// Install the config environment files
-			this._processGlob('mean2-starter', 'config/**', this.props);
+			this._processGlob('mean2-starter', 'config/**', destination, this.props);
 
 			// Install the Docker code if requested
 			if (this.props.docker) {
-				this._processGlob('docker', '*', this.props);
+				this._processGlob('docker', '*', destination, this.props);
 			}
 
 			// Install the server code
-			this._processGlob('mean2-starter', 'src/server/**/*.*');
+			this._processGlob('mean2-starter', 'src/server/**/*.*', destination);
 
 			// Install the client code if requested
 			if (this.props.client) {
-				this._processGlob('mean2-starter', 'src/client/**/*.*');
+				this._processGlob('mean2-starter', 'src/client/**/*.*', destination);
 			}
 			// Otherwise, overwrite certain files with the server-only version
 			else {
-				this._processGlob('server-only', 'config/*.*', this.props);
-				this.fs.delete('test-client.js');
+				this._processGlob('server-only', 'config/*.*', destination, this.props);
+				this.fs.delete(path.join(destination, 'test-client.js'));
+			}
+
+			// Install the multiservice Docker configs if requested
+			if (this.props.multiservice) {
+				this._processGlob('multiservice', '**', '.', this.props);
 			}
 		},
 
@@ -102,6 +121,15 @@ module.exports = yeoman.Base.extend({
 				if (this.props.client) {
 					_.merge(pkg.dependencies, dependencies.client);
 				}
+
+				// Make sure to install any additional dependencies needed by Docker
+				if (!pkg.dependencies['aws-sdk']) {
+					// Install the latest version
+					pkg.dependencies['aws-sdk'] = '^2.7.1';
+				}
+				if (!pkg.dependencies['var']) {
+					pkg.dependencies['var'] = '^0.2.0';
+				}
 			}
 			else {
 				_.merge(pkg.devDependencies, dependencies.gulp);
@@ -111,15 +139,13 @@ module.exports = yeoman.Base.extend({
 					_.merge(pkg.devDependencies, dependencies.client);
 				}
 			}
+
+			// Sort the packages, as npm install would do
+			pkg.dependencies = this._sortKeys(pkg.dependencies);
+			pkg.devDependencies = this._sortKeys(pkg.devDependencies);
+
 			this.fs.writeJSON('package.json', pkg, null, 4);
 		}
-	},
-
-	/**
-	 * Install the appropriate npm packages, depending on the configuration
-	 */
-	install: function () {
-		this.npmInstall();
 	},
 
 	/**
@@ -133,10 +159,18 @@ module.exports = yeoman.Base.extend({
 		this.props = this.props || {};
 
 		// Collect the options that have already been supplied, so we don't prompt for them again
-		var filteredPrompts = _.map(prompts, (prompt, key) => {
-			prompt.name = key;
-			return prompt;
-		});
+		var filteredPrompts = _.chain(prompts)
+		.map((prompt, key) => {
+			if (this.props[key] === undefined) {
+				prompt.name = key;
+				return prompt;
+			}
+			return undefined;
+		})
+		.filter((prompt) => {
+			return prompt !== undefined;
+		})
+		.value();
 
 		return this.prompt(filteredPrompts).then((props) => {
 			// Save the properties so they can be accessed later
@@ -151,17 +185,19 @@ module.exports = yeoman.Base.extend({
 	 *
 	 * @param {string} source - The source directory from which to copy files, relative to the template path.
 	 * @param {string} sourceGlob - A glob containing the files to copy.
+	 * @param {string} destination - The destination directory to which to copy file, relative to the destination path.
 	 * @param {Object} data - Optionally, data to feed to the template processor for each file.
 	 * @private
 	 */
-	_processGlob: function (source, sourceGlob, data) {
+	_processGlob: function (source, sourceGlob, destination, data) {
 		var sourcePath = this.templatePath(source);
+		var destinationPath = this.destinationPath(destination);
 
 		var files = glob.sync(sourceGlob, {dot: true, cwd: sourcePath});
 
 		files.forEach((file) => {
 			var src = path.join(sourcePath, file);
-			var dest = file;
+			var dest = path.join(destinationPath, file);
 
 			if (data) {
 				this.fs.copyTpl(src, dest, data);
@@ -227,5 +263,14 @@ module.exports = yeoman.Base.extend({
 		return _.reduce(tests, (acc, test) => {
 			return acc || dependency.indexOf(test) > -1;
 		}, false);
+	},
+
+	_sortKeys: function(object) {
+		var keys = Object.keys(object).sort();
+
+		return _.reduce(keys, (obj, key) => {
+			obj[key] = object[key];
+			return obj;
+		}, {});
 	}
 });

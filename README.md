@@ -1,5 +1,13 @@
 # generator-mean2starter [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url]
-> Creates a Node/Express/Mongo/Angular2 starter framework for applications and Docker-based microservices
+> A [Yeoman](http://yeoman.io) generator that creates a Node/Express/Mongo/Angular2 starter framework for applications and Docker-based microservices
+
+## Features
+
+Easily install Asymmetrik's MEAN2 Starter webapp in several different modes. Configurations that are currently supported:
+* server + client
+* server only
+* Docker deployment files
+* No docker deployment
 
 ## Installation
 
@@ -27,9 +35,9 @@ yo mean2starter
 MIT © [Asymmetrik Ltd](http://asymmetrik.com)
 
 
-[npm-image]: https://badge.fury.io/js/generator-mean-2-starter.svg
-[npm-url]: https://npmjs.org/package/generator-mean-2-starter
-[travis-image]: https://travis-ci.org/asymmetrik/generator-mean-2-starter.svg?branch=master
-[travis-url]: https://travis-ci.org/asymmetrik/generator-mean-2-starter
-[daviddm-image]: https://david-dm.org/asymmetrik/generator-mean-2-starter.svg?theme=shields.io
-[daviddm-url]: https://david-dm.org/asymmetrik/generator-mean-2-starter
+[npm-image]: https://badge.fury.io/js/generator-mean2starter.svg
+[npm-url]: https://npmjs.org/package/generator-mean2starter
+[travis-image]: https://travis-ci.org/asymmetrik/generator-mean2starter.svg?branch=master
+[travis-url]: https://travis-ci.org/asymmetrik/generator-mean2starter
+[daviddm-image]: https://david-dm.org/asymmetrik/generator-mean2starter.svg?theme=shields.io
+[daviddm-url]: https://david-dm.org/asymmetrik/generator-mean2starter

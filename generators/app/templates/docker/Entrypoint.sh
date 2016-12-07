@@ -5,13 +5,18 @@ set -e
 ##
 # Load Environment Variables from S3
 ##
-if [[ -n $SECRETS_S3_URI ]]
+if [[ -f ~/.secrets ]]
 then
- aws s3 cp s3://$SECRETS_S3_URI secrets
- set -a
- . secrets
- set +a
- rm secrets
+	set -a
+	. ~/.secrets
+	set +a
+elif [[ -v SECRETS_S3_URI ]]
+then
+	node downloadSecrets.js
+	set -a
+	. ~/.secrets
+	set +a
+	echo 'source secrets.sh' >> ~/.bashrc
 fi
 
 exec "$@"
