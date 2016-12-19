@@ -83,16 +83,16 @@ module.exports = yeoman.Base.extend({
 			}
 
 			// Install the server code
+			this._processGlob('mean2-starter', 'src/*.js', this.appDestination);
 			this._processGlob('mean2-starter', 'src/server/**/*.*', this.appDestination);
 
 			// Install the client code if requested
 			if (this.props.client) {
 				this._processGlob('mean2-starter', 'src/client/**/*.*', this.appDestination);
 			}
-			// Otherwise, overwrite certain files with the server-only version
+			// Otherwise, remove client-only files
 			else {
-				this._processGlob('server-only', 'config/*.*', this.appDestination, this.props);
-				this.fs.delete(path.join(this.appDestination, 'test-client.js'));
+				this.fs.delete(path.join(this.appDestination, 'config/client-assets.js'));
 			}
 
 			// Install the multiservice Docker configs if requested
@@ -105,27 +105,12 @@ module.exports = yeoman.Base.extend({
 			// Load and reconstruct the package.json file
 			var pkg = require(path.join(this.sourceRoot(), 'mean2-starter/package.json'));
 
-			// Organize the dependencies by type, by applying some rules
-			var dependencies = this._organizeDependencies(pkg);
-			this.log(JSON.stringify(dependencies, null, 2));
-
 			// Initialize the package
 			pkg.name = this.props.appname;
 			pkg.description = this.props.description;
 
-			// Copying over all the server and test dependencies
-			pkg.dependencies = dependencies.server;
-			pkg.devDependencies = dependencies.test;
-
 			// If we're running in docker mode, all the dev dependencies should be regular dependencies since they're used for the build
 			if (this.props.docker) {
-				_.merge(pkg.dependencies, dependencies.gulp);
-
-				// If the client is enabled, install all the client dependencies
-				if (this.props.client) {
-					_.merge(pkg.dependencies, dependencies.client);
-				}
-
 				// Make sure to install any additional dependencies needed by Docker
 				if (!pkg.dependencies['aws-sdk']) {
 					// Install the latest version
@@ -135,18 +120,6 @@ module.exports = yeoman.Base.extend({
 					pkg.dependencies['var'] = '^0.2.0';
 				}
 			}
-			else {
-				_.merge(pkg.devDependencies, dependencies.gulp);
-
-				// If the client is enabled, install all the client dependencies
-				if (this.props.client) {
-					_.merge(pkg.devDependencies, dependencies.client);
-				}
-			}
-
-			// Sort the packages, as npm install would do
-			pkg.dependencies = this._sortKeys(pkg.dependencies);
-			pkg.devDependencies = this._sortKeys(pkg.devDependencies);
 
 			this.fs.writeJSON(path.join(this.appDestination, 'package.json'), pkg, null, 4);
 		}
@@ -199,7 +172,7 @@ module.exports = yeoman.Base.extend({
 	 * @param {string} source - The source directory from which to copy files, relative to the template path.
 	 * @param {string} sourceGlob - A glob containing the files to copy.
 	 * @param {string} destination - The destination directory to which to copy file, relative to the destination path.
-	 * @param {Object} data - Optionally, data to feed to the template processor for each file.
+	 * @param {Object} [data] - Optionally, data to feed to the template processor for each file.
 	 * @private
 	 */
 	_processGlob: function (source, sourceGlob, destination, data) {
@@ -219,71 +192,5 @@ module.exports = yeoman.Base.extend({
 				this.fs.copy(src, dest);
 			}
 		});
-	},
-
-	/**
-	 * @typedef {Object} DependencyGroups
-	 * @type {Array} gulp - The gulp dependencies
-	 * @type {Array} server - The server dependencies
-	 * @type {Array} client - The client dependencies
-	 * @type {Array} test - The test dependencies
-	 */
-	/**
-	 * Organize the source dependencies and dev dependencies, so we can manipulate them in groups
-	 *
-	 * @param {Object} pkg - The source package.json file
-	 * @returns {DependencyGroups} The groups of dependencies
-	 * @private
-	 */
-	_organizeDependencies: function (pkg) {
-		var out = {
-			server: {},
-			client: {},
-			gulp: {},
-			test: {}
-		};
-
-		// We can assume the non-dev dependencies all pertain to the server
-		out.server = pkg.dependencies;
-
-		// Now iterate through the dev dependencies and categorize them
-		_.forEach(pkg.devDependencies, (version, dep) => {
-
-			// Is it a test dependency?
-			if (this._testDependency(dep, ['should', 'mocha'])) {
-				out.test[dep] = version;
-			}
-
-			// Is it a gulp plugin for a client-only functionality?
-			else if (this._testDependency(dep, ['sass', 'sourcemaps', 'clean-css', 'tslint', 'livereload'])) {
-				out.client[dep] = version;
-			}
-
-			// Is it a gulp plugin?
-			else if (this._testDependency(dep, ['gulp', 'run-sequence'])) {
-				out.gulp[dep] = version;
-			}
-
-			// Otherwise, it's a client dependency
-			else {
-				out.client[dep] = version;
-			}
-		});
-		return out;
-	},
-
-	_testDependency: function(dependency, tests) {
-		return _.reduce(tests, (acc, test) => {
-			return acc || dependency.indexOf(test) > -1;
-		}, false);
-	},
-
-	_sortKeys: function(object) {
-		var keys = Object.keys(object).sort();
-
-		return _.reduce(keys, (obj, key) => {
-			obj[key] = object[key];
-			return obj;
-		}, {});
 	}
 });
