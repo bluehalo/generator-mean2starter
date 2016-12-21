@@ -1,0 +1,8 @@
+# Remove Git files
+.git
+.gitignore
+
+# Remove files created during npm install
+node_modules
+
+# Remove example config files not needed for Docker

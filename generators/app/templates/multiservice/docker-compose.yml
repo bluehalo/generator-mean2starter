@@ -1,0 +1,38 @@
+version: '2'
+
+services:
+  <%= appname %>:
+    depends_on:
+      - mongo
+    build:
+      context: <%= appname %>
+      dockerfile: <%= appname %>/Dockerfile
+      args:
+        BUILD_ENV: development
+    env_file:
+      - .local-secrets/aws.secrets
+    environment:
+      NODE_ENV: docker
+      PORT: 3000
+    ports:
+      - "3000:3000"
+      - "5858:5858"   # Node Debugger
+      - "9876:9876"   # Karma
+      - "9000:9000"   # Webpack
+    volumes:
+      - ./<%= appname %>/src:/srv/app/<%= appname %>/src
+      - ./<%= appname %>/config:/srv/app/<%= appname %>/config
+    command:
+      gulp dev
+    links:
+      - mongo
+
+  mongo:
+    image: mongo:3.2.5
+    ports:
+      - "27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
